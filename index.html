@@ -193,7 +193,7 @@ footer{background:#000;color:#aab6c4;font-size:14px;border-top:1px solid #12305a
 {
 /* ---- Business settings: edit these ---- */
 const BUSINESS={name:"MB Auto Sales",phone:"(714) 423-7542",email:"mbautosales@gmail.com"};
-const LEAD_ENDPOINT=""; /* e.g. a Formspree / Zapier / Google Apps Script URL once hosted on your own domain */
+const LEAD_ENDPOINT="https://formsubmit.co/ajax/mbautosales@gmail.com"; /* e.g. a Formspree / Zapier / Google Apps Script URL once hosted on your own domain */
 const OFFER_RATIO=0.86; /* instant offer as a share of estimated private-party value */
 const THIS_YEAR=2026;
 
@@ -324,8 +324,8 @@ $("form").addEventListener("submit",async e=>{
   if(!$("name").value.trim()||$("phone").value.replace(/\D/g,"").length<10){$("err3").textContent="Please add your name and a 10-digit phone number.";return}
   $("err3").textContent="";const d=$("done");d.classList.remove("hidden");
   if(LEAD_ENDPOINT){
-    try{const r=await fetch(LEAD_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({...last,vin:$("vin").value,zip:$("zip").value,name:$("name").value,phone:$("phone").value,email:$("email").value,when:$("when").value})});
-      if(!r.ok)throw 0;d.innerHTML=`<b>Thanks, ${$("name").value.split(" ")[0]}!</b> We received your request and will reach out to schedule your free inspection.`;$("submit").disabled=true;
+    try{const r=await fetch(LEAD_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({_subject:`New lead: ${last.y} ${last.make} ${last.model} — ${fmt(last.offer)}`,_template:"table",_captcha:"false","Name":$("name").value,"Phone":$("phone").value,"Email":$("email").value||"n/a","Vehicle":`${last.y} ${last.make} ${last.model}`,"Trim":$("trim").selectedOptions[0].text,"VIN":$("vin").value.toUpperCase()||"n/a","Mileage":last.mi.toLocaleString("en-US"),"ZIP":$("zip").value||"n/a","Condition":document.querySelector("input[name=cond]:checked").nextElementSibling.firstChild.textContent,"Accident history":document.querySelector("input[name=acc]:checked").nextElementSibling.textContent,"Title":document.querySelector("input[name=title]:checked").nextElementSibling.textContent,"Warning lights":document.querySelector("input[name=lights]:checked").nextElementSibling.textContent,"Estimated offer":fmt(last.offer),"Offer range":`${fmt(last.lo)} – ${fmt(last.hi)}`,"Inspection timing":$("when").value})});
+      const j=await r.json().catch(()=>({}));if(!r.ok||String(j.success)!=="true")throw 0;d.innerHTML=`<b>Thanks, ${$("name").value.split(" ")[0]}!</b> We received your request and will reach out to schedule your free inspection.`;$("submit").disabled=true;$("submit").textContent="Request sent";
     }catch(_){d.innerHTML="We couldn't send that just now. Please try again in a moment"+(BUSINESS.phone?` or call us at ${BUSINESS.phone}.`:".")}
   }else{
     d.innerHTML=`<b>Preview mode:</b> this page isn't connected to an inbox yet, so nothing was sent. Here is what would be submitted:<pre style="white-space:pre-wrap;font-size:13px;margin:8px 0">${summary().replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}</pre><button type="button" class="ghost" id="copy">Copy summary</button>`;
